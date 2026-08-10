@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator
 
 # ─────────────────────────────────────────────
 # Environment & Logging
@@ -165,9 +165,10 @@ class HistoryMessage(BaseModel):
 
 class ChatRequest(BaseModel):
     message: str
-    history: Optional[List[HistoryMessage]] = []
+    history: Optional[List[HistoryMessage]] = None
 
-    @validator("message")
+    @field_validator("message")
+    @classmethod
     def message_must_not_be_empty(cls, v: str) -> str:
         if not v or not v.strip():
             raise ValueError("Message cannot be empty.")
@@ -235,7 +236,7 @@ async def chat(request: ChatRequest):
 
         # Build history for multi-turn conversation
         history_contents = []
-        for msg in request.history:
+        for msg in (request.history or []):
             role = "user" if msg.role == "user" else "model"
             history_contents.append({"role": role, "parts": [msg.text]})
 
