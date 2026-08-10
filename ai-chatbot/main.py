@@ -23,15 +23,14 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 logger = logging.getLogger(__name__)
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-MODEL_NAME = os.getenv("MODEL_NAME", "gemini-flash-latest")
+MODEL_NAME = os.getenv("MODEL_NAME", "gemini-2.0-flash")
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
 
 if not GEMINI_API_KEY:
-    logger.error("GEMINI_API_KEY is not set. Please add it to your .env file.")
-    raise RuntimeError("GEMINI_API_KEY environment variable is required.")
-
-genai.configure(api_key=GEMINI_API_KEY)
-logger.info(f"Gemini configured. Using model: {MODEL_NAME}")
+    logger.warning("GEMINI_API_KEY is not set. Chat endpoint will return 503 until it is configured.")
+else:
+    genai.configure(api_key=GEMINI_API_KEY)
+    logger.info(f"Gemini configured. Using model: {MODEL_NAME}")
 
 # ─────────────────────────────────────────────
 # Portfolio Knowledge Base — System Prompt
@@ -217,6 +216,12 @@ async def chat(request: ChatRequest):
     Accepts a user message and optional conversation history.
     Returns an AI-generated response grounded in portfolio knowledge.
     """
+    if not GEMINI_API_KEY:
+        raise HTTPException(
+            status_code=503,
+            detail="AI assistant is not configured. GEMINI_API_KEY is missing.",
+        )
+    genai.configure(api_key=GEMINI_API_KEY)
     try:
         model = genai.GenerativeModel(
             model_name=MODEL_NAME,
