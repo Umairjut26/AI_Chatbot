@@ -1547,13 +1547,10 @@
             showTyping();
 
             try {
-                const formData = new FormData();
-                formData.append('message', query);
-                formData.append('history', JSON.stringify(msgHistory));
-
                 const res = await fetch(AI_BACKEND_URL, {
                     method: 'POST',
-                    body: formData,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: query, history: msgHistory }),
                     signal: AbortSignal.timeout(25000)
                 });
 
