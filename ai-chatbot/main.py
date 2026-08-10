@@ -24,7 +24,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 logger = logging.getLogger(__name__)
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-MODEL_NAME = os.getenv("MODEL_NAME", "gemini-2.0-flash")
+MODEL_NAME = os.getenv("MODEL_NAME", "gemini-1.5-flash")
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
 
 if not GEMINI_API_KEY:
@@ -250,10 +250,11 @@ async def chat(request: ChatRequest):
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
-        logger.error(f"Chat error: {e}")
+        error_msg = str(e)
+        logger.error(f"Chat error: {error_msg}")
         raise HTTPException(
             status_code=503,
-            detail="The AI assistant is temporarily unavailable. Please try again later.",
+            detail=f"AI error: {error_msg}",
         )
 
 
