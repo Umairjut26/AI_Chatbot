@@ -13,6 +13,7 @@ import google.generativeai as genai
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from mangum import Mangum
 from pydantic import BaseModel, validator
 
 # ─────────────────────────────────────────────
@@ -253,3 +254,9 @@ async def chat(request: ChatRequest):
             status_code=503,
             detail="The AI assistant is temporarily unavailable. Please try again later.",
         )
+
+
+# ─────────────────────────────────────────────
+# Vercel Serverless Handler (mangum wrapper)
+# ─────────────────────────────────────────────
+handler = Mangum(app, lifespan="off")
